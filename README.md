@@ -106,8 +106,8 @@ Transformers Predictive Maintainance/
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd "Transformers Predictive Maintainance"
+   git clone https://github.com/arijit258/Transfer-Monitoring.git
+   cd "Transformers Monitoring"
    ```
 
 2. **Create a virtual environment and install dependencies**
