@@ -1,0 +1,108 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}All Transformers - Transformer AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold gradient-text">Transformer Fleet</h1>
+            <p class="text-gray-400 mt-1">Monitor and analyze all transformers</p>
+        </div>
+        <a href="{% url 'monitoring:chat' %}" class="btn-glow bg-gradient-to-r from-blue-500 to-purple-600 px-5 py-2 rounded-xl font-semibold flex items-center space-x-2">
+            <i class="fas fa-robot"></i>
+            <span>Fleet Analysis</span>
+        </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="glass-card p-4">
+        <div class="flex flex-wrap items-center gap-4">
+            <span class="text-gray-400">Filter by status:</span>
+            <a href="{% url 'monitoring:transformer_list' %}" 
+               class="px-4 py-2 rounded-lg {% if not status_filter %}bg-blue-500 text-white{% else %}bg-white/10 hover:bg-white/20{% endif %} transition-colors">
+                All
+            </a>
+            <a href="?status=Healthy" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'Healthy' %}bg-green-500 text-white{% else %}bg-white/10 hover:bg-white/20{% endif %} transition-colors">
+                <i class="fas fa-check-circle mr-2"></i>Healthy
+            </a>
+            <a href="?status=Warning" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'Warning' %}bg-yellow-500 text-white{% else %}bg-white/10 hover:bg-white/20{% endif %} transition-colors">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Warning
+            </a>
+            <a href="?status=Critical" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'Critical' %}bg-red-500 text-white{% else %}bg-white/10 hover:bg-white/20{% endif %} transition-colors">
+                <i class="fas fa-times-circle mr-2"></i>Critical
+            </a>
+        </div>
+    </div>
+    
+    <!-- Transformer Table -->
+    <div class="glass-card overflow-hidden">
+        <table class="w-full">
+            <thead class="bg-white/5">
+                <tr>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">ID</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Name</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Location</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Status</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Health</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Scenario</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-300">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/10">
+                {% for t in transformers %}
+                <tr class="hover:bg-white/5 transition-colors">
+                    <td class="px-6 py-4">
+                        <span class="font-semibold">{{ t.transformer_id }}</span>
+                    </td>
+                    <td class="px-6 py-4">{{ t.name }}</td>
+                    <td class="px-6 py-4 text-gray-400">{{ t.location }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            {% if t.status == 'Healthy' %}bg-green-500/20 text-green-400
+                            {% elif t.status == 'Warning' %}bg-yellow-500/20 text-yellow-400
+                            {% else %}bg-red-500/20 text-red-400{% endif %}">
+                            {{ t.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-16 h-2 bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full {% if t.health_score >= 80 %}bg-green-500{% elif t.health_score >= 50 %}bg-yellow-500{% else %}bg-red-500{% endif %}" 
+                                     style="width: {{ t.health_score }}%"></div>
+                            </div>
+                            <span class="text-sm {% if t.health_score >= 80 %}text-green-400{% elif t.health_score >= 50 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                                {{ t.health_score }}%
+                            </span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-400">{{ t.scenario|truncatechars:30 }}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center space-x-2">
+                            <a href="{% url 'monitoring:transformer_detail' t.transformer_id %}" 
+                               class="p-2 bg-blue-500/20 hover:bg-blue-500/40 rounded-lg transition-colors" title="Details">
+                                <i class="fas fa-eye text-blue-400"></i>
+                            </a>
+                            <a href="{% url 'monitoring:transformer_chat' t.transformer_id %}" 
+                               class="p-2 bg-purple-500/20 hover:bg-purple-500/40 rounded-lg transition-colors" title="AI Chat">
+                                <i class="fas fa-robot text-purple-400"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                        No transformers found
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

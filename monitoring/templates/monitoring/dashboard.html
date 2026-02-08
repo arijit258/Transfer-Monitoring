@@ -1,0 +1,263 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}Dashboard - Transformer AI{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-4xl font-bold gradient-text">Dashboard</h1>
+            <p class="text-gray-400 mt-2">Real-time monitoring of your transformer fleet</p>
+        </div>
+        <a href="{% url 'monitoring:chat' %}" class="btn-glow bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 rounded-xl font-semibold flex items-center space-x-2 hover:shadow-lg hover:shadow-purple-500/25 transition-all">
+            <i class="fas fa-robot"></i>
+            <span>Ask AI Assistant</span>
+        </a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <!-- Total -->
+        <div class="glass-card p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Total Units</p>
+                    <p class="text-4xl font-bold mt-2">{{ total_count }}</p>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center">
+                    <i class="fas fa-bolt text-blue-400 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Healthy -->
+        <div class="glass-card p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Healthy</p>
+                    <p class="text-4xl font-bold mt-2 text-green-400">{{ healthy_count }}</p>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-green-500/20 flex items-center justify-center">
+                    <i class="fas fa-check-circle text-green-400 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Warning -->
+        <div class="glass-card p-6 border-l-4 border-yellow-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Warning</p>
+                    <p class="text-4xl font-bold mt-2 text-yellow-400">{{ warning_count }}</p>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-400 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Critical -->
+        <div class="glass-card p-6 border-l-4 border-red-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Critical</p>
+                    <p class="text-4xl font-bold mt-2 text-red-400">{{ critical_count }}</p>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-red-500/20 flex items-center justify-center animate-pulse">
+                    <i class="fas fa-times-circle text-red-400 text-2xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Avg Health -->
+        <div class="glass-card p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm uppercase tracking-wider">Avg Health</p>
+                    <p class="text-4xl font-bold mt-2 {% if avg_health_score >= 80 %}text-green-400{% elif avg_health_score >= 50 %}text-yellow-400{% else %}text-red-400{% endif %}">{{ avg_health_score }}%</p>
+                </div>
+                <div class="health-score">
+                    <svg class="health-ring w-14 h-14" viewBox="0 0 100 100">
+                        <circle class="health-ring-bg" cx="50" cy="50" r="45" fill="none" stroke-width="8"/>
+                        <circle class="health-ring-progress" cx="50" cy="50" r="45" fill="none" stroke-width="8"
+                                stroke="{% if avg_health_score >= 80 %}#10b981{% elif avg_health_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %}"
+                                stroke-linecap="round" data-progress="{{ avg_health_score }}"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-pie text-blue-400 mr-3"></i>
+                Status Distribution
+            </h3>
+            <div class="relative h-64">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+        <div class="glass-card p-6">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-bar text-purple-400 mr-3"></i>
+                Health Scores
+            </h3>
+            <div class="relative h-64">
+                <canvas id="healthChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transformer Grid -->
+    <div>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">All Transformers</h2>
+            <a href="{% url 'monitoring:transformer_list' %}" class="text-blue-400 hover:text-blue-300 transition-colors">
+                View All <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for t in transformers %}
+            <div class="glass-card overflow-hidden group cursor-pointer" onclick="window.location='{% url 'monitoring:transformer_detail' t.transformer_id %}'">
+                <!-- Status Header -->
+                <div class="p-4 {% if t.status == 'Healthy' %}status-healthy{% elif t.status == 'Warning' %}status-warning{% else %}status-critical{% endif %}">
+                    <div class="flex justify-between items-center text-white">
+                        <span class="font-bold text-lg">{{ t.transformer_id }}</span>
+                        <span class="px-3 py-1 bg-white/20 rounded-full text-sm backdrop-blur">{{ t.status }}</span>
+                    </div>
+                </div>
+                
+                <!-- Card Body -->
+                <div class="p-5">
+                    <h3 class="font-semibold text-lg group-hover:text-blue-400 transition-colors">{{ t.name }}</h3>
+                    <p class="text-gray-400 text-sm mt-1 flex items-center">
+                        <i class="fas fa-map-marker-alt mr-2"></i>{{ t.location }}
+                    </p>
+                    
+                    <div class="mt-4 p-3 bg-white/5 rounded-xl">
+                        <p class="text-sm text-gray-400">Scenario</p>
+                        <p class="text-sm font-medium mt-1">{{ t.scenario }}</p>
+                    </div>
+                    
+                    <div class="mt-4 flex justify-between items-center">
+                        <div>
+                            <span class="text-3xl font-bold {% if t.health_score >= 80 %}text-green-400{% elif t.health_score >= 50 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                                {{ t.health_score }}%
+                            </span>
+                            <span class="text-gray-400 text-sm ml-2">Health</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
+                            <i class="fas fa-arrow-right text-blue-400 group-hover:text-white transition-colors"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full glass-card p-12 text-center">
+                <div class="w-20 h-20 rounded-full bg-gray-700/50 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-database text-gray-500 text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-400">No Transformers Found</h3>
+                <p class="text-gray-500 mt-2">Upload data to get started with monitoring.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Healthy', 'Warning', 'Critical'],
+            datasets: [{
+                data: [{{ healthy_count }}, {{ warning_count }}, {{ critical_count }}],
+                backgroundColor: [
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(16, 185, 129, 1)',
+                    'rgba(245, 158, 11, 1)',
+                    'rgba(239, 68, 68, 1)'
+                ],
+                borderWidth: 2,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#9ca3af', padding: 20, font: { size: 12 } }
+                }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true
+            }
+        }
+    });
+    
+    // Health Score Chart
+    const healthCtx = document.getElementById('healthChart').getContext('2d');
+    new Chart(healthCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for t in transformers %}'{{ t.transformer_id }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Health Score',
+                data: [{% for t in transformers %}{{ t.health_score }}{% if not forloop.last %},{% endif %}{% endfor %}],
+                backgroundColor: [{% for t in transformers %}{% if t.health_score >= 80 %}'rgba(16, 185, 129, 0.7)'{% elif t.health_score >= 50 %}'rgba(245, 158, 11, 0.7)'{% else %}'rgba(239, 68, 68, 0.7)'{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderColor: [{% for t in transformers %}{% if t.health_score >= 80 %}'#10b981'{% elif t.health_score >= 50 %}'#f59e0b'{% else %}'#ef4444'{% endif %}{% if not forloop.last %},{% endif %}{% endfor %}],
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#9ca3af' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#9ca3af' }
+                }
+            },
+            animation: {
+                duration: 1500,
+                easing: 'easeOutQuart'
+            }
+        }
+    });
+    
+    // Animate health rings
+    document.querySelectorAll('.health-ring-progress').forEach(ring => {
+        const progress = ring.dataset.progress;
+        const offset = 314 - (314 * progress / 100);
+        setTimeout(() => {
+            ring.style.strokeDashoffset = offset;
+        }, 500);
+    });
+</script>
+{% endblock %}

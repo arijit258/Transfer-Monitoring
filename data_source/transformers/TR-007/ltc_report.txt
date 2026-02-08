@@ -1,0 +1,148 @@
+===============================================================================
+               LTC DEGRADATION REPORT - TR-007
+               Eta Transmission Autotransformer  
+               Rating: 200 MVA | Voltage: 400/220/33 kV
+===============================================================================
+
+STATUS: ⚠️ WARNING - LTC Degradation + Oil Contamination
+HEALTH INDEX: 58%
+PRIMARY ISSUE: Load Tap Changer Contact Wear
+
+===============================================================================
+                    LTC SUMMARY
+===============================================================================
+
+LTC Type: On-Load Tap Changer (Resistor Type)
+Manufacturer: MR (Maschinenfabrik Reinhausen)
+Model: OILTAP M
+Installation: 2008
+Total Operations: 275,000 (High duty)
+Operations/Year: ~16,000
+
+CONTACT CONDITION:
+- Contact wear: 65% of allowable
+- Contact resistance: Elevated (12% above baseline)
+- Arcing contact condition: Degraded
+- Selector switch: Satisfactory
+
+===============================================================================
+                    OIL CONTAMINATION ANALYSIS
+===============================================================================
+
+The LTC compartment oil shows significant contamination from switching arcs:
+
+PARAMETER         | VALUE    | LIMIT    | STATUS
+------------------|----------|----------|--------
+Carbon particles  | HIGH     | LOW      | ⚠️ Contaminated
+BDV (LTC oil)    | 28 kV    | >40 kV   | ⚠️ Low
+Acetylene        | 12 ppm   | <2 ppm   | ⚠️ From arcing
+Color            | 6.0      | <3.0     | ⚠️ Darkened
+
+MAIN TANK OIL IMPACT:
+- Cross-contamination detected via selector
+- Main tank BDV: 32 kV (reduced from 45 kV)
+- Carbon particles migrating to main tank
+- Increasing tan delta in main tank oil
+
+===============================================================================
+                    DGA INTERPRETATION
+===============================================================================
+
+The DGA shows characteristic LTC-related gas generation:
+
+1. ACETYLENE (C2H2): 12 ppm
+   - Source: LTC switching arcs
+   - Normal for high-duty LTC
+   - Requires monitoring
+
+2. HYDROGEN (H2): 320 ppm
+   - Elevated from LTC arcing
+   - Also indicates main tank stress
+
+3. ETHYLENE (C2H4): 195 ppm
+   - High temperature indicator
+   - Contact heating during operations
+
+KEY RATIO (Rogers):
+- C2H2/C2H4 = 0.06 → LTC arcing signature
+- Consistent with tap changer degradation
+
+===============================================================================
+                   MAINTENANCE HISTORY
+===============================================================================
+
+DATE       | ACTION                    | RESULT
+-----------|---------------------------|------------------
+2012-04    | LTC overhaul             | Contacts replaced
+2016-08    | LTC inspection           | 40% wear noted
+2020-03    | Oil change (LTC)         | Temporary improvement
+2023-06    | Contact inspection       | 60% wear, monitoring
+2024-11    | Emergency oil filter     | Partial improvement
+
+OVERDUE MAINTENANCE:
+⚠️ LTC overhaul recommended at 250,000 operations
+⚠️ Current operations: 275,000 (25,000 overdue)
+
+===============================================================================
+                    RISK ASSESSMENT
+===============================================================================
+
+CURRENT RISKS:
+1. Contact failure during operation → Outage
+2. Oil flashover in LTC compartment → Fire risk
+3. Cross-contamination → Main insulation damage
+4. Mechanical failure → Stuck tap position
+
+PROBABILITY ASSESSMENT:
+- LTC failure (12 months): 25%
+- Oil-related incident: 15%
+- Combined failure mode: 35%
+
+===============================================================================
+                  RECOMMENDED ACTIONS
+===============================================================================
+
+IMMEDIATE (Within 14 days):
+1. ⚠️ Schedule LTC maintenance outage
+2. ⚠️ Perform oil filtration (both compartments)
+3. ⚠️ Contact resistance measurement
+4. ⚠️ Dynamic resistance measurement
+
+DURING OUTAGE:
+1. Complete LTC overhaul
+2. Replace arcing contacts
+3. Inspect selector mechanism
+4. Oil change (LTC compartment)
+5. Main tank oil treatment
+
+POST-MAINTENANCE:
+1. Baseline DGA after 100 operations
+2. Contact resistance trending
+3. Consider load redistribution to reduce operations
+
+===============================================================================
+                    COST ESTIMATE
+===============================================================================
+
+Item                          | Cost (USD)
+------------------------------|------------
+LTC overhaul (contacts)       | $150,000
+Oil treatment (both tanks)    | $45,000
+Dynamic resistance testing    | $12,000
+Outage cost (48 hours)        | $85,000
+------------------------------|------------
+TOTAL                         | $292,000
+
+vs. Failure Cost: $2M - $5M (unplanned)
+
+===============================================================================
+                     CONCLUSION
+===============================================================================
+
+LTC maintenance is overdue and should be scheduled within 14 days. The 
+combination of contact wear and oil contamination creates elevated risk.
+Load redistribution should be considered to reduce operation frequency.
+
+Report Date: 2026-01-12
+Priority: HIGH
+===============================================================================

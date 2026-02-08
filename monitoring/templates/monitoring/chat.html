@@ -1,0 +1,463 @@
+{% extends 'monitoring/base.html' %}
+
+{% block title %}AI Assistant - Transformer Analytics{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .chat-container {
+        height: calc(100vh - 300px);
+        min-height: 400px;
+    }
+    
+    .message-user {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    
+    .message-ai {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .question-chip {
+        transition: all 0.3s ease;
+    }
+    
+    .question-chip:hover {
+        background: rgba(59, 130, 246, 0.3);
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+    }
+    
+    /* Dropdown fix */
+    #modelSelect, #transformerSelect {
+        background-color: #1e293b !important;
+        color: #fff !important;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23fff' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 36px;
+    }
+    
+    #modelSelect option, #transformerSelect option {
+        background-color: #1e293b !important;
+        color: #fff !important;
+        padding: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <!-- Sidebar -->
+    <div class="lg:col-span-1 space-y-6">
+        <!-- Model Selection -->
+        <div class="glass-card p-5">
+            <h3 class="font-semibold mb-4 flex items-center">
+                <i class="fas fa-brain text-purple-400 mr-2"></i>
+                AI Model
+            </h3>
+            <select id="modelSelect" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                <optgroup label="Groq Cloud (Fast & Powerful)">
+                    <option value="llama-3.3-70b-versatile" selected>Llama 3.3 70B (Versatile)</option>
+                    <option value="llama-3.1-8b-instant">Llama 3.1 8B (Instant)</option>
+                    <option value="mixtral-8x7b-32768">Mixtral 8x7B (Large Context)</option>
+                    <option value="gemma-7b-it">Gemma 7B (Efficient)</option>
+                </optgroup>
+                <optgroup label="Ollama Local (Private)">
+                    <option value="phi3">Phi-3 (Fast)</option>
+                    <option value="mistral">Mistral (Balanced)</option>
+                    <option value="llama3">Llama 3 (Advanced)</option>
+                </optgroup>
+            </select>
+            <p class="text-xs text-gray-400 mt-2">
+                <i class="fas fa-info-circle mr-1"></i>
+                Groq requires API key in .env file
+            </p>
+        </div>
+        
+        <!-- Transformer Selection -->
+        <div class="glass-card p-5">
+            <h3 class="font-semibold mb-4 flex items-center">
+                <i class="fas fa-bolt text-yellow-400 mr-2"></i>
+                Select Transformer
+            </h3>
+            <select id="transformerSelect" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                <option value="">All Transformers (General)</option>
+                {% for t in transformers %}
+                <option value="{{ t.transformer_id }}">{{ t.transformer_id }} - {{ t.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="glass-card p-5">
+            <h3 class="font-semibold mb-4 flex items-center">
+                <i class="fas fa-magic text-blue-400 mr-2"></i>
+                Quick Actions
+            </h3>
+            <div class="space-y-2">
+                <button onclick="clearChat()" class="w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-colors">
+                    <i class="fas fa-trash-alt mr-2 text-gray-400"></i>Clear Chat
+                </button>
+                <button onclick="generateReport()" class="w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-left transition-colors">
+                    <i class="fas fa-file-alt mr-2 text-gray-400"></i>Generate Report
+                </button>
+            </div>
+        </div>
+        
+        <!-- Sample Questions -->
+        <div class="glass-card p-5">
+            <h3 class="font-semibold mb-4 flex items-center">
+                <i class="fas fa-lightbulb text-yellow-400 mr-2"></i>
+                Sample Questions
+            </h3>
+            
+            <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                {% for category, questions in sample_questions.items %}
+                <div>
+                    <p class="text-xs uppercase text-gray-500 mb-2">{{ category|title }}</p>
+                    <div class="space-y-2">
+                        {% for q in questions|slice:":2" %}
+                        <button onclick="askQuestion('{{ q|escapejs }}')" 
+                                class="question-chip w-full px-3 py-2 text-left text-sm bg-white/5 border border-white/10 rounded-lg hover:bg-blue-500/20">
+                            {{ q|truncatechars:80 }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Chat Area -->
+    <div class="lg:col-span-3">
+        <div class="glass-card h-full flex flex-col">
+            <!-- Chat Header -->
+            <div class="p-5 border-b border-white/10">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                            <i class="fas fa-robot text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-bold text-lg">Transformer AI Assistant</h2>
+                            <p class="text-sm text-gray-400">Powered by Agentic RAG</p>
+                        </div>
+                    </div>
+                    <div id="statusIndicator" class="flex items-center space-x-2">
+                        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                        <span class="text-sm text-gray-400">Ready</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages Container -->
+            <div id="chatMessages" class="chat-container flex-1 overflow-y-auto p-5 space-y-4">
+                <!-- Welcome Message -->
+                <div class="chat-message message-ai rounded-2xl p-4 max-w-3xl">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/30 flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-purple-400"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-300">Hello! I'm your Transformer Analytics AI Assistant. I can help you with:</p>
+                            <ul class="mt-2 text-sm text-gray-400 space-y-1">
+                                <li><i class="fas fa-check text-green-400 mr-2"></i>DGA analysis and interpretation</li>
+                                <li><i class="fas fa-check text-green-400 mr-2"></i>Health index predictions</li>
+                                <li><i class="fas fa-check text-green-400 mr-2"></i>Fault diagnosis and root cause analysis</li>
+                                <li><i class="fas fa-check text-green-400 mr-2"></i>Maintenance recommendations</li>
+                                <li><i class="fas fa-check text-green-400 mr-2"></i>Trend analysis and forecasting</li>
+                            </ul>
+                            <p class="mt-3 text-sm text-gray-300">Select a transformer from the sidebar or ask a general question to get started!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="p-5 border-t border-white/10">
+                <form id="chatForm" class="flex space-x-4">
+                    <div class="flex-1 relative">
+                        <input type="text" id="questionInput" 
+                               placeholder="Ask about transformer health, DGA analysis, maintenance..." 
+                               class="w-full bg-white/10 border border-white/20 rounded-xl px-5 py-4 pr-12 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors">
+                        <button type="button" onclick="document.getElementById('questionInput').value=''" 
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <button type="submit" id="sendBtn" 
+                            class="btn-glow px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl font-semibold flex items-center space-x-2 hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span>Send</span>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const chatMessages = document.getElementById('chatMessages');
+    const chatForm = document.getElementById('chatForm');
+    const questionInput = document.getElementById('questionInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const modelSelect = document.getElementById('modelSelect');
+    const transformerSelect = document.getElementById('transformerSelect');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const SESSION_ID = '{{ session_id }}';
+    
+    // Submit question
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const question = questionInput.value.trim();
+        if (!question) return;
+        
+        await sendQuestion(question);
+    });
+    
+    async function askQuestion(question) {
+        questionInput.value = question;
+        await sendQuestion(question);
+    }
+    
+    async function sendQuestion(question) {
+        // Add user message
+        addMessage(question, 'user');
+        questionInput.value = '';
+        
+        // Show typing indicator
+        const typingId = showTyping();
+        setStatus('Thinking...', 'yellow');
+        sendBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/api/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question: question,
+                    model: modelSelect.value,
+                    transformer_id: transformerSelect.value || null,
+                    session_id: SESSION_ID
+                })
+            });
+            
+            const data = await response.json();
+            removeTyping(typingId);
+            
+            if (data.error && !data.answer) {
+                addMessage('Sorry, there was an error processing your request. ' + data.error, 'ai', true);
+            } else {
+                addMessage(data.answer, 'ai', false, data.sources);
+            }
+            
+            setStatus('Ready', 'green');
+        } catch (error) {
+            removeTyping(typingId);
+            addMessage('Connection error. Please ensure Ollama is running on localhost:11434', 'ai', true);
+            setStatus('Error', 'red');
+        }
+        
+        sendBtn.disabled = false;
+    }
+    
+    function addMessage(content, type, isError = false, sources = []) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${type === 'user' ? 'message-user ml-auto' : 'message-ai'} rounded-2xl p-4 max-w-3xl`;
+        
+        if (type === 'user') {
+            messageDiv.innerHTML = `
+                <div class="flex items-start space-x-3 justify-end">
+                    <div class="text-right">
+                        <p class="text-white">${escapeHtml(content)}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                </div>
+            `;
+        } else {
+            const formattedContent = formatResponse(content);
+            let sourcesHtml = '';
+            if (sources && sources.length > 0) {
+                sourcesHtml = `
+                    <div class="mt-3 pt-3 border-t border-white/10">
+                        <p class="text-xs text-gray-500 mb-1">Sources:</p>
+                        <div class="flex flex-wrap gap-1">
+                            ${sources.map(s => `<span class="text-xs px-2 py-1 bg-white/5 rounded">${s}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-lg ${isError ? 'bg-red-500/30' : 'bg-purple-500/30'} flex items-center justify-center flex-shrink-0">
+                        <i class="fas ${isError ? 'fa-exclamation-triangle text-red-400' : 'fa-robot text-purple-400'}"></i>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <div class="prose prose-invert prose-sm max-w-none">${formattedContent}</div>
+                        ${sourcesHtml}
+                    </div>
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    function showTyping() {
+        const id = 'typing-' + Date.now();
+        const typingDiv = document.createElement('div');
+        typingDiv.id = id;
+        typingDiv.className = 'chat-message message-ai rounded-2xl p-4 max-w-3xl';
+        typingDiv.innerHTML = `
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/30 flex items-center justify-center">
+                    <i class="fas fa-robot text-purple-400"></i>
+                </div>
+                <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return id;
+    }
+    
+    function removeTyping(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+    
+    function setStatus(text, color) {
+        statusIndicator.innerHTML = `
+            <span class="w-2 h-2 bg-${color}-400 rounded-full ${color === 'yellow' ? 'animate-pulse' : ''}"></span>
+            <span class="text-sm text-gray-400">${text}</span>
+        `;
+    }
+    
+    function formatResponse(text) {
+        // First, escape HTML to prevent XSS
+        text = escapeHtml(text);
+        
+        // Handle code blocks (before other formatting)
+        text = text.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
+            return `<div class="code-block bg-gray-900 rounded-lg p-4 my-3 overflow-x-auto border border-gray-700"><pre><code class="language-${lang}">${code.trim()}</code></pre></div>`;
+        });
+        
+        // Handle inline code
+        text = text.replace(/`([^`]+)`/g, '<code class="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-mono text-sm">$1</code>');
+        
+        // Handle headers (convert to styled headings)
+        text = text.replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-purple-400 mt-4 mb-2">$1</h3>');
+        text = text.replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-blue-400 mt-5 mb-3">$1</h2>');
+        text = text.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-white mt-6 mb-4 border-b border-gray-700 pb-2">$1</h1>');
+        
+        // Handle bold text
+        text = text.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+        
+        // Handle italic text
+        text = text.replace(/\*([^*]+)\*/g, '<em class="italic text-gray-300">$1</em>');
+        
+        // Handle underlined text
+        text = text.replace(/__([^_]+)__/g, '<u class="underline decoration-purple-400 decoration-2 underline-offset-2">$1</u>');
+        
+        // Handle strikethrough
+        text = text.replace(/~~([^~]+)~~/g, '<span class="line-through text-gray-500">$1</span>');
+        
+        // Handle horizontal rules
+        text = text.replace(/^---$/gim, '<hr class="border-gray-700 my-4">');
+        
+        // Handle blockquotes
+        text = text.replace(/^> (.*$)/gim, '<blockquote class="border-l-4 border-purple-500 pl-4 my-3 italic text-gray-400 bg-white/5 py-2 rounded-r">$1</blockquote>');
+        
+        // Handle ordered lists
+        text = text.replace(/^\d+\. (.*$)/gim, '<li class="list-decimal ml-6 my-1 text-gray-300">$1</li>');
+        
+        // Handle unordered lists with better bullet points
+        text = text.replace(/^[-*•] (.*$)/gim, function(match, item) {
+            // Check if it's a special item (with emoji or icon indicator)
+            if (item.includes('⚠️') || item.includes('✓') || item.includes('🔴') || item.includes('🟡') || item.includes('🟢') || item.includes('•')) {
+                return `<li class="list-disc ml-6 my-1 text-gray-300 flex items-start"><span class="mr-2">•</span><span>${item}</span></li>`;
+            }
+            return `<li class="list-disc ml-6 my-1 text-gray-300"><span class="text-purple-400 mr-2">›</span>${item}</li>`;
+        });
+        
+        // Handle tables (basic support)
+        text = text.replace(/\|(.+)\|/g, function(match) {
+            const cells = match.split('|').filter(c => c.trim());
+            if (cells[0].includes('---')) {
+                return ''; // Skip separator row
+            }
+            return `<div class="flex border-b border-gray-700 py-2"><span class="flex-1 text-gray-300 px-2">${cells.join('</span><span class="flex-1 text-gray-300 px-2">')}</span></div>`;
+        });
+        
+        // Handle links
+        text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:text-blue-300 underline" target="_blank">$1</a>');
+        
+        // Handle highlighted text
+        text = text.replace(/==([^=]+)==/g, '<mark class="bg-yellow-500/30 text-yellow-200 px-1 rounded">$1</mark>');
+        
+        // Convert multiple newlines to paragraphs
+        text = text.replace(/\n\n+/g, '</p><p class="text-gray-300 mb-3 leading-relaxed">');
+        
+        // Convert single newlines to line breaks
+        text = text.replace(/\n/g, '<br>');
+        
+        // Wrap in paragraph if not already wrapped
+        if (!text.startsWith('<')) {
+            text = '<p class="text-gray-300 mb-3 leading-relaxed">' + text + '</p>';
+        }
+        
+        // Clean up empty paragraphs
+        text = text.replace(/<p class="text-gray-300 mb-3 leading-relaxed"><\/p>/g, '');
+        
+        return text;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    async function clearChat() {
+        try {
+            await fetch('/api/chat/history/clear/', { method: 'POST' });
+        } catch (e) {}
+        
+        chatMessages.innerHTML = `
+            <div class="chat-message message-ai rounded-2xl p-4 max-w-3xl">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-500/30 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-purple-400"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-300">Chat cleared. How can I help you with transformer analysis?</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    function generateReport() {
+        const transformer = transformerSelect.value;
+        if (transformer) {
+            askQuestion(`Generate a comprehensive health report for transformer ${transformer}, including current status, risk factors, DGA trends, and maintenance recommendations.`);
+        } else {
+            askQuestion('Generate a fleet-wide health summary report including status distribution, critical alerts, and priority maintenance recommendations.');
+        }
+    }
+</script>
+{% endblock %}

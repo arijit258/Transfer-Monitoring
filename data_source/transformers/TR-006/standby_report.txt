@@ -1,0 +1,113 @@
+===============================================================================
+                 STANDBY TRANSFORMER REPORT - TR-006
+                 Zeta Backup Unit
+                 Rating: 30 MVA | Voltage: 33/11 kV
+===============================================================================
+
+STATUS: ✅ HEALTHY - Excellent Condition
+HEALTH INDEX: 92%
+ROLE: Emergency Backup / Reserve Unit
+
+===============================================================================
+                      UNIT SUMMARY
+===============================================================================
+
+Commissioned: 2022-03-15
+Age: 4 years
+Service Hours: 850 (standby mode, periodic energization)
+Last Energization Test: 2025-10-05
+Primary Purpose: Emergency backup for Zone C distribution
+
+===============================================================================
+                    CONDITION ASSESSMENT
+===============================================================================
+
+PARAMETER          | VALUE    | LIMIT    | STATUS
+-------------------|----------|----------|--------
+Health Index       | 92%      | >85%     | ✅ EXCELLENT
+Moisture (ppm)     | 8        | <15      | ✅ EXCELLENT
+BDV (kV)          | 72       | >60      | ✅ EXCELLENT
+Tan Delta (%)     | 0.22     | <0.5     | ✅ EXCELLENT
+Hydrogen H2 (ppm) | 25       | <100     | ✅ NORMAL
+Acetylene (ppm)   | 0        | <2       | ✅ NORMAL
+Total DGA (ppm)   | 775      | <2500    | ✅ NORMAL
+Insulation R (MΩ) | 12,500   | >5000    | ✅ EXCELLENT
+Core Ground (Ω)   | 0.5      | <5       | ✅ EXCELLENT
+
+===============================================================================
+                    OIL QUALITY SUMMARY
+===============================================================================
+
+Last Sample: 2025-10-05
+- Breakdown Voltage: 72 kV (Excellent - New oil typically 70-80 kV)
+- Moisture: 8 ppm (Excellent - Well below 15 ppm limit)
+- Acidity: 0.01 mgKOH/g (Excellent - New oil condition)
+- Interfacial Tension: 48 mN/m (Excellent)
+- Color: 0.5 (Light - No oxidation)
+- Furan (2-FAL): <0.05 ppm (No paper aging)
+
+===============================================================================
+                  MAINTENANCE SCHEDULE
+===============================================================================
+
+ROUTINE MAINTENANCE:
+- Quarterly: Visual inspection, oil level check
+- Semi-annual: DGA sampling, breather inspection
+- Annual: Energization test, protection verification
+- Biennial: Comprehensive diagnostic testing
+
+COMPLETED MAINTENANCE (2025):
+✅ Q1 - Visual inspection (March)
+✅ Q2 - DGA sampling (June)  
+✅ Q3 - Semi-annual inspection (September)
+✅ Q4 - Annual energization test (October)
+
+NEXT SCHEDULED:
+- Q1 2026: Visual inspection
+- April 2026: Semi-annual maintenance
+
+===============================================================================
+                    STANDBY READINESS
+===============================================================================
+
+READINESS STATUS: ✅ READY FOR IMMEDIATE SERVICE
+
+Checklist:
+✅ Oil level normal
+✅ Cooling system functional
+✅ Protection relays tested
+✅ Control circuits verified
+✅ Bushings inspected
+✅ Tap changer at neutral position
+✅ Grounding verified
+✅ Fire protection active
+
+ENERGIZATION TIME: <15 minutes from cold standby
+LOAD PICKUP CAPABILITY: Full rated load (30 MVA)
+
+===============================================================================
+                    RECOMMENDATIONS
+===============================================================================
+
+1. Continue current maintenance program
+2. Quarterly oil sampling (current practice)
+3. Annual energization under load (4 hours minimum)
+4. Consider mobile monitoring during extended energization
+5. Maintain spare parts inventory (bushings, gaskets)
+
+LONG-TERM OUTLOOK:
+- Expected service life: 35-40 years
+- Current condition supports full lifespan
+- No major capital investment required for 10+ years
+
+===============================================================================
+                      CONCLUSION
+===============================================================================
+
+Transformer TR-006 is in excellent condition and fully ready for emergency 
+service. The standby maintenance program is effective in preserving the 
+unit's condition. Continue current practices.
+
+Report Date: 2026-01-12
+Next Assessment: 2026-04-15
+===============================================================================

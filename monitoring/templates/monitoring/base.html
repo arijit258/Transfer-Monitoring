@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Transformer Monitoring{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        /* Status indicators with glow */
+        .status-healthy { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+        }
+        .status-warning { 
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+        .status-critical { 
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+            animation: pulse-glow 2s infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.8); }
+        }
+        
+        /* Health score animation */
+        .health-score {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .health-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .health-ring-bg {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+        
+        .health-ring-progress {
+            stroke-dasharray: 314;
+            stroke-dashoffset: 314;
+            transition: stroke-dashoffset 1.5s ease;
+        }
+        
+        /* Animated gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+        }
+        
+        /* Nav animations */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        /* Button animations */
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-glow:hover::before {
+            left: 100%;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #60a5fa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Chat styles */
+        .chat-message {
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #60a5fa;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Select dropdown styling */
+        select {
+            background-color: #1e293b !important;
+            color: white !important;
+        }
+        
+        select option {
+            background-color: #1e293b !important;
+            color: white !important;
+            padding: 10px;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #3b82f6 !important;
+        }
+    </style>
+    {% block extra_styles %}{% endblock %}
+</head>
+<body class="min-h-screen text-white">
+    <!-- Animated background particles -->
+    <div id="particles" class="fixed inset-0 pointer-events-none overflow-hidden z-0"></div>
+    
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <a href="{% url 'monitoring:dashboard' %}" class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                        <i class="fas fa-bolt text-white text-xl"></i>
+                    </div>
+                    <span class="text-xl font-bold gradient-text">Transformer Monitor</span>
+                </a>
+                
+                <div class="flex items-center space-x-8">
+                    <a href="{% url 'monitoring:dashboard' %}" class="nav-link hover:text-blue-400">
+                        <i class="fas fa-th-large mr-2"></i>Dashboard
+                    </a>
+                    <a href="{% url 'monitoring:transformer_list' %}" class="nav-link hover:text-blue-400">
+                        <i class="fas fa-bolt mr-2"></i>Transformers
+                    </a>
+                    <a href="{% url 'monitoring:chat' %}" class="nav-link hover:text-blue-400">
+                        <i class="fas fa-robot mr-2"></i>AI Assistant
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8 relative z-10">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="glass mt-auto py-6">
+        <div class="container mx-auto px-6 text-center text-gray-400">
+            <p>
+                <i class="fas fa-cog mr-2"></i>
+                Transformer Monitoring System &copy; 2025 
+                <span class="mx-2">|</span>
+                Powered by <span class="gradient-text font-semibold">Arijit Mondal</span>
+            </p>
+        </div>
+    </footer>
+    
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (4 + Math.random() * 4) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // Initialize animations
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            // GSAP animations for cards - with fallback
+            if (typeof gsap !== 'undefined') {
+                gsap.fromTo('.glass-card', 
+                    { y: 30, opacity: 0.3 },
+                    { duration: 0.6, y: 0, opacity: 1, stagger: 0.08, ease: 'power2.out' }
+                );
+            } else {
+                // Fallback - ensure cards are visible
+                document.querySelectorAll('.glass-card').forEach(el => el.style.opacity = '1');
+            }
+        });
+        
+        // Health ring animation
+        function animateHealthRing(element, percentage) {
+            const offset = 314 - (314 * percentage / 100);
+            gsap.to(element, {
+                strokeDashoffset: offset,
+                duration: 1.5,
+                ease: 'power2.out'
+            });
+        }
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

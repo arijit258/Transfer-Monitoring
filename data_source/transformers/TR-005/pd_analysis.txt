@@ -1,0 +1,125 @@
+===============================================================================
+               PARTIAL DISCHARGE ANALYSIS - TR-005
+               Epsilon Power Station Unit
+               Rating: 150 MVA | Voltage: 400/132 kV
+===============================================================================
+
+STATUS: ⛔ CRITICAL - Active Partial Discharge Detected
+HEALTH INDEX: 28%
+RISK: Internal flashover / Complete insulation failure
+
+===============================================================================
+                    PD MEASUREMENT SUMMARY
+===============================================================================
+
+ACOUSTIC EMISSION MONITORING:
+- Maximum PD Magnitude: 2400 pC (Threshold: 500 pC)
+- PD Activity Level: SEVERE
+- Location: HV Winding (Phase A, Turns 15-22)
+- Pattern: Consistent with void discharge in paper insulation
+
+ELECTRICAL PD MEASUREMENT:
+- HFCT (High Frequency Current Transformer) Detection
+- Repetitive PD pulses at 450-520 Hz
+- Phase correlation: Peak activity at 45° and 225°
+- Indicates: Internal void/delamination in winding insulation
+
+===============================================================================
+                    DGA CORRELATION
+===============================================================================
+
+The DGA results strongly correlate with PD activity:
+
+1. ACETYLENE (C2H2): 35 ppm
+   - Normal: <2 ppm
+   - Indicates electrical discharge/arcing
+   - Confirms PD is generating arc-type degradation
+
+2. HYDROGEN (H2): 485 ppm
+   - Normal: <100 ppm
+   - Primary indicator of electrical fault
+   - 5x above threshold
+
+3. METHANE (CH4): 165 ppm
+   - Elevated due to localized heating from PD
+
+KEY RATIO ANALYSIS:
+- C2H2/C2H4 = 0.19 → Low-energy discharge
+- C2H2/H2 = 0.07 → Thermal fault with discharge
+- Duval Triangle: D1 (Low-energy discharge)
+
+===============================================================================
+                    ROOT CAUSE INVESTIGATION
+===============================================================================
+
+PROBABLE CAUSES:
+1. Insulation aging (20 years service)
+2. Thermal cycling stress on winding insulation
+3. Moisture absorption weakening paper
+4. Manufacturing defect (void) now propagating
+5. Prior overload events causing hot spot damage
+
+CONTRIBUTING FACTORS:
+- High operating voltage stress (400 kV)
+- Frequent load cycling
+- Historical overload events
+- Moisture content: 38 ppm (elevated)
+
+===============================================================================
+                    FAILURE PROGRESSION MODEL
+===============================================================================
+
+Stage 1 (2016-2018): Initial void development
+Stage 2 (2019-2020): PD inception, <500 pC
+Stage 3 (2021-2022): PD growth, 500-1500 pC
+Stage 4 (2023-2024): Accelerating degradation, >1500 pC
+Stage 5 (Current): CRITICAL - Risk of tracking/flashover
+
+ESTIMATED TIME TO FAILURE:
+- Without action: 6-18 months
+- With load reduction: 18-36 months
+- Probability of failure (12 months): 45%
+
+===============================================================================
+                   RECOMMENDED ACTIONS
+===============================================================================
+
+IMMEDIATE (NOW):
+1. ⛔ Reduce load to 60% maximum
+2. ⛔ Continuous PD monitoring
+3. ⛔ Schedule emergency outage within 30 days
+4. ⛔ Prepare contingency switching arrangements
+
+DURING OUTAGE:
+1. Internal inspection of HV winding
+2. Detailed sweep frequency response analysis
+3. Capacitance and tan delta per winding
+4. Consider targeted repair or rewinding
+
+STRATEGIC:
+1. Budget for replacement: $4.5M - $6M
+2. Order replacement transformer (lead time: 18 months)
+3. Evaluate refurbishment vs new unit
+
+===============================================================================
+                    ECONOMIC ANALYSIS
+===============================================================================
+
+Option 1: Continue Operation (Risk-based)
+- Expected failure cost: $12M - $20M
+- Risk probability: 45% (12 months)
+- Expected value of loss: $5.4M - $9M
+
+Option 2: Planned Replacement
+- Replacement cost: $5M
+- Planned outage cost: $500K
+- Total: $5.5M
+
+Option 3: Refurbishment
+- Estimated cost: $1.5M - $2M
+- Extended life: 5-8 years
+- Risk: Uncertain outcome
+
+RECOMMENDATION: Plan replacement, operate at reduced load
+
+===============================================================================
